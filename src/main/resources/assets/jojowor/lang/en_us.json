@@ -1,0 +1,8 @@
+{
+  "itemGroup.jojowor": "JoJo: Winds of Requiem",
+
+  "jojowor.configuration.title": "JoJo: Winds of Requiem",
+  "jojowor.configuration.section.jojowor.common.toml": "Common Settings",
+  "jojowor.configuration.section.jojowor.common.toml.title": "Common Settings",
+  "jojowor.configuration.debugLogging": "Debug Logging"
+}
