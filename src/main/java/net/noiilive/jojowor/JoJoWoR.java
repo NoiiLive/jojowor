@@ -7,35 +7,31 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.noiilive.jojowor.registry.ModAttachments;
 import net.noiilive.jojowor.registry.ModBlocks;
 import net.noiilive.jojowor.registry.ModCreativeTabs;
+import net.noiilive.jojowor.registry.ModEffects;
 import net.noiilive.jojowor.registry.ModItems;
+import net.noiilive.jojowor.registry.ModStands;
 
 import org.slf4j.Logger;
 
-/**
- * Main entrypoint for JoJo: Winds of Requiem.
- *
- * <p>The value passed to {@link Mod} must match the {@code modId} in
- * {@code META-INF/neoforge.mods.toml}.</p>
- */
 @Mod(JoJoWoR.MODID)
 public class JoJoWoR {
-    /** Mod id, referenced everywhere a namespace is needed. */
     public static final String MODID = "jojowor";
 
-    /** Shared logger for the mod. */
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public JoJoWoR(IEventBus modEventBus, ModContainer modContainer) {
         modEventBus.addListener(this::commonSetup);
 
-        // Registries
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
+        ModStands.register(modEventBus);
+        ModAttachments.register(modEventBus);
+        ModEffects.register(modEventBus);
 
-        // Config
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 

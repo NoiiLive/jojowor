@@ -10,7 +10,6 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.noiilive.jojowor.JoJoWoR;
 
-/** Creative mode tabs added by the mod. */
 public class ModCreativeTabs {
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, JoJoWoR.MODID);
@@ -19,10 +18,8 @@ public class ModCreativeTabs {
             CREATIVE_MODE_TABS.register("main", () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup." + JoJoWoR.MODID))
                     .withTabsBefore(CreativeModeTabs.COMBAT)
-                    // TODO: swap for a mod item once one exists.
                     .icon(() -> Items.NETHER_STAR.getDefaultInstance())
                     .displayItems((parameters, output) -> {
-                        // TODO: output.accept(ModItems.SOME_ITEM.get());
                     })
                     .build());
 
