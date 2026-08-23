@@ -21,12 +21,6 @@ public class PartDropdown extends AbstractWidget {
     private String selected;
     private boolean open;
 
-    public PartDropdown(int x, int y, int width, int height, List<String> options, String selected,
-                        Function<String, Component> labeler, Consumer<String> onSelect) {
-        this(PosingTextures.DROPDOWN, PosingTextures.DROPDOWN_ENTRY,
-                x, y, width, height, options, selected, labeler, onSelect);
-    }
-
     public PartDropdown(net.minecraft.resources.ResourceLocation dropdownTexture,
                         net.minecraft.resources.ResourceLocation entryTexture,
                         int x, int y, int width, int height, List<String> options, String selected,

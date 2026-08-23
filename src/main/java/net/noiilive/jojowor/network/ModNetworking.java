@@ -42,6 +42,11 @@ public final class ModNetworking {
                 ServerPayloadHandler::handleSetStandSkin);
 
         registrar.playToServer(
+                StandAbilityPayload.TYPE,
+                StandAbilityPayload.STREAM_CODEC,
+                ServerPayloadHandler::handleStandAbility);
+
+        registrar.playToServer(
                 StandThrowPayload.TYPE,
                 StandThrowPayload.STREAM_CODEC,
                 ServerPayloadHandler::handleStandThrow);
@@ -80,6 +85,11 @@ public final class ModNetworking {
                 StandAttackEffectPayload.TYPE,
                 StandAttackEffectPayload.STREAM_CODEC,
                 ClientPayloadHandler::handleStandAttackEffect);
+
+        registrar.playToClient(
+                TimeStopEffectPayload.TYPE,
+                TimeStopEffectPayload.STREAM_CODEC,
+                ClientPayloadHandler::handleTimeStopEffect);
 
         registrar.playToClient(
                 StandThrowEffectPayload.TYPE,

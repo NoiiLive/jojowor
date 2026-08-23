@@ -1,0 +1,20 @@
+{
+    "vertex": "jojowor:timestop",
+    "fragment": "jojowor:timestop",
+    "samplers": [
+        { "name": "DiffuseSampler" },
+        { "name": "DepthSampler" },
+        { "name": "MaskSampler" }
+    ],
+    "uniforms": [
+        { "name": "InverseTransform", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+        { "name": "SphereCenter", "type": "float", "count": 3, "values": [ 0.0, 0.0, 0.0 ] },
+        { "name": "EffectParams", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+        { "name": "RingParams", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+        { "name": "GrayRingParams", "type": "float", "count": 2, "values": [ 0.0, 0.0 ] },
+        { "name": "HueParams", "type": "float", "count": 2, "values": [ 0.0, 0.0 ] },
+        { "name": "DistortParams", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+        { "name": "ForwardTransform", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+        { "name": "SkyDistance", "type": "float", "count": 1, "values": [ 0.0 ] }
+    ]
+}

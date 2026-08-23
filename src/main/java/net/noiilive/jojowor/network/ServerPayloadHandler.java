@@ -17,6 +17,10 @@ import net.noiilive.jojowor.stand.Stands;
 public final class ServerPayloadHandler {
     private ServerPayloadHandler() {}
 
+    private static boolean frozen(ServerPlayer player) {
+        return net.noiilive.jojowor.stand.ability.TimeStops.stopAffecting(player) != null;
+    }
+
     private static int serverTick(ServerPlayer player) {
         return player.getServer() == null ? 0 : player.getServer().getTickCount();
     }
@@ -26,7 +30,7 @@ public final class ServerPayloadHandler {
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
             }
-            if (player.hasEffect(ModEffects.STUN)) {
+            if (player.hasEffect(ModEffects.STUN) || frozen(player)) {
                 return;
             }
 
@@ -49,7 +53,7 @@ public final class ServerPayloadHandler {
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
             }
-            if (!Stands.has(player)) {
+            if (!Stands.has(player) || frozen(player)) {
                 return;
             }
             player.setData(ModAttachments.STAND, Stands.getData(player)
@@ -64,7 +68,7 @@ public final class ServerPayloadHandler {
                 return;
             }
             Stand stand = Stands.get(player);
-            if (stand == null || stand.getSkins().isEmpty()) {
+            if (stand == null || stand.getSkins().isEmpty() || frozen(player)) {
                 return;
             }
             java.util.List<net.noiilive.jojowor.stand.skin.StandSkin> skins = stand.getSkins();
@@ -82,6 +86,18 @@ public final class ServerPayloadHandler {
         });
     }
 
+    public static void handleStandAbility(StandAbilityPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (!(context.player() instanceof ServerPlayer player)) {
+                return;
+            }
+            if (!Stands.isSummoned(player) || player.hasEffect(ModEffects.STUN)) {
+                return;
+            }
+            net.noiilive.jojowor.stand.ability.StandAbilities.activate(player, payload.slot());
+        });
+    }
+
     public static void handleStandThrow(StandThrowPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             if (!(context.player() instanceof ServerPlayer player)) {
@@ -89,7 +105,8 @@ public final class ServerPayloadHandler {
             }
             if (!Stands.isSummoned(player)
                     || Stands.guardMode(player) != GuardMode.NONE
-                    || player.hasEffect(ModEffects.STUN)) {
+                    || player.hasEffect(ModEffects.STUN)
+                    || frozen(player)) {
                 return;
             }
 
@@ -127,7 +144,8 @@ public final class ServerPayloadHandler {
             }
             if (!Stands.isSummoned(player)
                     || Stands.guardMode(player) != GuardMode.NONE
-                    || player.hasEffect(ModEffects.STUN)) {
+                    || player.hasEffect(ModEffects.STUN)
+                    || frozen(player)) {
                 return;
             }
             Entity candidate = player.level().getEntity(payload.targetEntityId());
@@ -150,7 +168,8 @@ public final class ServerPayloadHandler {
             }
             if (!Stands.isSummoned(player)
                     || Stands.guardMode(player) != GuardMode.NONE
-                    || player.hasEffect(ModEffects.STUN)) {
+                    || player.hasEffect(ModEffects.STUN)
+                    || frozen(player)) {
                 return;
             }
             Entity candidate = player.level().getEntity(payload.targetEntityId());
@@ -177,7 +196,8 @@ public final class ServerPayloadHandler {
             }
             if (!Stands.isSummoned(player)
                     || Stands.guardMode(player) == GuardMode.NONE
-                    || player.hasEffect(ModEffects.STUN)) {
+                    || player.hasEffect(ModEffects.STUN)
+                    || frozen(player)) {
                 return;
             }
             StandAttacks.startBarrage(player);
@@ -189,7 +209,7 @@ public final class ServerPayloadHandler {
             if (!(context.player() instanceof ServerPlayer player)) {
                 return;
             }
-            if (!Stands.isSummoned(player)) {
+            if (!Stands.isSummoned(player) || frozen(player)) {
                 return;
             }
 
@@ -214,7 +234,8 @@ public final class ServerPayloadHandler {
             }
             if (!Stands.isSummoned(player)
                     || Stands.guardMode(player) != GuardMode.NONE
-                    || player.hasEffect(ModEffects.STUN)) {
+                    || player.hasEffect(ModEffects.STUN)
+                    || frozen(player)) {
                 return;
             }
 

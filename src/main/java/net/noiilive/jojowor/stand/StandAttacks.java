@@ -157,13 +157,29 @@ public final class StandAttacks {
         PENDING.put(player.getUUID(), new Pending(targetId, blockTarget, IMPACT_DELAY_TICKS));
     }
 
+    private static boolean attackOnCooldown(UUID id, int now) {
+        if (barrageOnCooldown(id, now)) {
+            return true;
+        }
+        ComboState state = COMBO.get(id);
+        if (state == null || now - state.lastTick() > COMBO_RESET_TICKS) {
+            return false;
+        }
+        int cooldown = state.count() >= COMBO_SIZE ? COMBO_END_COOLDOWN_TICKS : MIN_PUNCH_INTERVAL_TICKS;
+        return now - state.lastTick() < cooldown - 1;
+    }
+
     public static boolean tryBeginUppercut(ServerPlayer player) {
         int now = player.getServer() == null ? 0 : player.getServer().getTickCount();
+        if (attackOnCooldown(player.getUUID(), now)) {
+            return false;
+        }
         Integer last = UPPERCUT_COOLDOWNS.get(player.getUUID());
         if (last != null && now - last < UPPERCUT_COOLDOWN_TICKS) {
             return false;
         }
         UPPERCUT_COOLDOWNS.put(player.getUUID(), now);
+        COMBO.put(player.getUUID(), new ComboState(COMBO_SIZE, now));
         return true;
     }
 
@@ -174,11 +190,15 @@ public final class StandAttacks {
 
     public static boolean tryBeginSlam(ServerPlayer player) {
         int now = player.getServer() == null ? 0 : player.getServer().getTickCount();
+        if (attackOnCooldown(player.getUUID(), now)) {
+            return false;
+        }
         Integer last = SLAM_COOLDOWNS.get(player.getUUID());
         if (last != null && now - last < SLAM_COOLDOWN_TICKS) {
             return false;
         }
         SLAM_COOLDOWNS.put(player.getUUID(), now);
+        COMBO.put(player.getUUID(), new ComboState(COMBO_SIZE, now));
         return true;
     }
 

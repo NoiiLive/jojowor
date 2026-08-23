@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class PoseSlots {
-    public static final int SLOT_COUNT = 5;
+    public static final int SLOT_COUNT = 3;
 
     private static List<StandPose> slots;
 

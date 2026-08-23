@@ -5,9 +5,17 @@
 
   "effect.jojowor.stun": "Stunned",
 
+  "subtitles.jojowor.timestop": "Time stops",
+  "subtitles.jojowor.timeresume": "Time resumes",
+
   "key.categories.jojowor": "JoJo: Winds of Requiem",
   "key.jojowor.summon_stand": "Summon Stand",
   "key.jojowor.main_menu": "Main Menu",
+  "key.jojowor.ability_1": "Ability 1",
+  "key.jojowor.ability_2": "Ability 2",
+  "key.jojowor.ability_3": "Ability 3",
+
+  "ability.jojowor.time_stop": "Time Stop",
 
   "jojowor.screen.posing.title": "Stand Posing",
   "jojowor.screen.posing.part": "Limb",
@@ -35,6 +43,8 @@
   "jojowor.screen.posing.reset_all": "Reset Entire Pose",
   "jojowor.screen.posing.reset_all_short": "R. Pose",
   "jojowor.screen.posing.save": "Save Pose",
+  "jojowor.screen.posing.confirm": "Apply Pose",
+  "jojowor.screen.posing.slot_save": "Save Slot %s",
 
   "jojowor.screen.skins.title": "Stand Skins",
   "jojowor.screen.skins.save": "Save",
@@ -58,5 +68,7 @@
   "jojowor.configuration.title": "JoJo: Winds of Requiem",
   "jojowor.configuration.section.jojowor.common.toml": "Common Settings",
   "jojowor.configuration.section.jojowor.common.toml.title": "Common Settings",
-  "jojowor.configuration.debugLogging": "Debug Logging"
+  "jojowor.configuration.debugLogging": "Debug Logging",
+  "jojowor.configuration.globalTimestop": "Global Time Stop",
+  "jojowor.configuration.timestopRadius": "Time Stop Radius"
 }

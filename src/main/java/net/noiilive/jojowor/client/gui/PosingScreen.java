@@ -1,10 +1,12 @@
 package net.noiilive.jojowor.client.gui;
 
 import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderType;
@@ -29,59 +31,60 @@ import java.util.List;
 import java.util.Map;
 
 public class PosingScreen extends Screen {
-    private static final int IMAGE_WIDTH = 176;
-    private static final int IMAGE_HEIGHT = 188;
+    private static final int IMAGE_WIDTH = 267;
+    private static final int IMAGE_HEIGHT = 241;
 
-    private static final int VIEWPORT_X = 7;
-    private static final int VIEWPORT_Y = 32;
-    private static final int VIEWPORT_WIDTH = 85;
-    private static final int VIEWPORT_HEIGHT = 92;
+    private static final int VIEWPORT_X = 21;
+    private static final int VIEWPORT_Y = 36;
+    private static final int VIEWPORT_WIDTH = 88;
+    private static final int VIEWPORT_HEIGHT = 122;
 
-    private static final int DROPDOWN_X = 96;
-    private static final int DROPDOWN_Y = 32;
-    private static final int DROPDOWN_WIDTH = 73;
-    private static final int DROPDOWN_HEIGHT = 15;
+    private static final int DROPDOWN_X = 121;
+    private static final int DROPDOWN_Y = 28;
+    private static final int DROPDOWN_WIDTH = 133;
+    private static final int DROPDOWN_HEIGHT = 21;
 
-    private static final int TRACK_X = 97;
-    private static final int[] TRACK_YS = {51, 70, 89, 108, 127, 146};
-    private static final int TRACK_LONG_WIDTH = 71;
-    private static final int TRACK_HEIGHT = 13;
+    private static final int SLIDER_COL_X = 143;
+    private static final int OFFSET_COL_X = 211;
+    private static final int[] ROT_TRACK_YS = {56, 79, 102};
+    private static final int[] POS_TRACK_YS = {125, 148, 171};
+    private static final int TRACK_LONG_WIDTH = 108;
+    private static final int TRACK_SMALL_WIDTH = 40;
+    private static final int TRACK_HEIGHT = 12;
 
-    private static final int BUTTON_SMALL_WIDTH = 41;
-    private static final int BUTTON_HEIGHT = 15;
-    private static final int RESET_PART_X = 7;
-    private static final int RESET_POSE_X = 51;
-    private static final int RESET_Y = 127;
-    private static final int SAVE_X = 7;
-    private static final int SAVE_Y = 145;
-    private static final int BUTTON_LARGE_WIDTH = 85;
+    private static final int BIG_BUTTON_SIZE = 31;
+    private static final int RESET_PART_X = 13;
+    private static final int RESET_POSE_X = 50;
+    private static final int SHOWPLAYER_X = 87;
+    private static final int BIG_BUTTON_Y = 169;
 
-    private static final int CHECKBOX_X = 9;
-    private static final int CHECKBOX_Y = 169;
-    private static final int CHECKBOX_SIZE = 15;
+    private static final int CONFIRM_X = 13;
+    private static final int CONFIRM_Y = 202;
+    private static final int CONFIRM_WIDTH = 105;
+    private static final int CONFIRM_HEIGHT = 26;
+    private static final float CONFIRM_TEXT_CENTER_X = 64.5F;
+    private static final float CONFIRM_TEXT_BOTTOM_Y = 217.0F;
 
-    private static final int TRACK_SMALL_WIDTH = 29;
-    private static final int OFFSET_Y = 170;
-    private static final int OFFSET_X_SLIDER_X = 43;
-    private static final int OFFSET_Y_SLIDER_X = 90;
-    private static final int OFFSET_Z_SLIDER_X = 137;
+    private static final int[] SLOT_XS = {123, 161, 199};
+    private static final int SLOT_Y = 190;
+    private static final int SLOT_WIDTH = 36;
+    private static final int SLOT_HEIGHT = 40;
+    private static final float[] SLOT_TEXT_CENTER_XS = {140.0F, 178.0F, 216.0F};
+    private static final float SLOT_TEXT_BOTTOM_Y = 207.0F;
 
-    private static final int SAVEBAR_WIDTH = 34;
-    private static final int SAVEBAR_HEIGHT = 126;
-    private static final int UPLOAD_X = 0;
-    private static final int DOWNLOAD_X = 14;
-    private static final int TRANSFER_Y = 2;
-    private static final int TRANSFER_WIDTH = 13;
-    private static final int TRANSFER_HEIGHT = 14;
-    private static final int SLOT_X = 5;
-    private static final int SLOT_FIRST_Y = 24;
-    private static final int SLOT_PITCH = 20;
-    private static final int SLOT_SIZE = 17;
-    private static final int TAB_X = 27;
-    private static final int TAB_SAVE_FIRST_Y = 25;
-    private static final int TAB_CLEAR_FIRST_Y = 33;
-    private static final int TAB_WIDTH = 7;
-    private static final int TAB_HEIGHT = 7;
+    private static final int MINI_BUTTON_Y = 217;
+    private static final int MINI_BUTTON_SIZE = 9;
+    private static final int MINI_SAVE_OFFSET = 3;
+    private static final int MINI_LOAD_OFFSET = 13;
+    private static final int MINI_CLEAR_OFFSET = 23;
+
+    private static final int TRANSFER_X = 235;
+    private static final int UPLOAD_Y = 190;
+    private static final int DOWNLOAD_Y = 210;
+    private static final int TRANSFER_SIZE = 20;
+
+    private static final float TITLE_CENTER_X = 133.0F;
+    private static final float TITLE_BOTTOM_Y = 16.0F;
 
     private static final int ROT_X = 0;
     private static final int ROT_Y = 1;
@@ -99,12 +102,14 @@ public class PosingScreen extends Screen {
     private static final int GRID_COLOR = 0x50FFFFFF;
     private static final int GRID_AXIS_COLOR = 0x90FFFFFF;
 
+    @Nullable
+    private static List<int[]> viewportMask;
+
+    private final List<TooltipZone> tooltipZones = new ArrayList<>();
     private final Map<String, float[]> working = new LinkedHashMap<>();
     private final float[] offsetWorking = new float[3];
     private boolean showPlayer;
     private int selectedSlot = -1;
-    private int savebarX;
-    private int savebarY;
     private List<String> partNames = List.of();
     private String selectedPart = "";
 
@@ -122,7 +127,7 @@ public class PosingScreen extends Screen {
     @Nullable
     private StandRenderers.Baked baked;
     @Nullable
-    private PartDropdown dropdown;
+    private PoseDropdown dropdown;
 
     public PosingScreen() {
         super(Component.translatable("jojowor.screen.posing.title"));
@@ -167,6 +172,7 @@ public class PosingScreen extends Screen {
             this.offsetWorking[2] = offset.up();
         }
 
+        this.tooltipZones.clear();
         this.leftPos = (this.width - IMAGE_WIDTH) / 2;
         this.topPos = (this.height - IMAGE_HEIGHT) / 2;
 
@@ -174,120 +180,6 @@ public class PosingScreen extends Screen {
         this.viewportTop = this.topPos + VIEWPORT_Y;
         this.viewportRight = this.viewportLeft + VIEWPORT_WIDTH;
         this.viewportBottom = this.viewportTop + VIEWPORT_HEIGHT;
-
-        float[] values = this.working.get(this.selectedPart);
-        String[] sliderKeys = {"rot_x", "rot_y", "rot_z", "off_x", "off_y", "off_z"};
-        for (int i = 0; i < 6; i++) {
-            final int index = i;
-            boolean rotation = i < 3;
-            addRenderableWidget(new PoseSlider(PosingTextures.TRACK_LONG,
-                    this.leftPos + TRACK_X, this.topPos + TRACK_YS[i], TRACK_LONG_WIDTH, TRACK_HEIGHT,
-                    Component.translatable("jojowor.screen.posing." + sliderKeys[i]),
-                    rotation ? -MAX_ROTATION_DEGREES : -MAX_OFFSET,
-                    rotation ? MAX_ROTATION_DEGREES : MAX_OFFSET,
-                    values[index],
-                    rotation ? "%.0f" : "%.1f",
-                    value -> this.working.get(this.selectedPart)[index] = (float) value));
-        }
-
-        addRenderableWidget(new TexturedButton(PosingTextures.BUTTON_SMALL,
-                this.leftPos + RESET_PART_X, this.topPos + RESET_Y, BUTTON_SMALL_WIDTH, BUTTON_HEIGHT,
-                Component.translatable("jojowor.screen.posing.reset"),
-                Component.translatable("jojowor.screen.posing.reset_short"), button -> {
-            this.working.put(this.selectedPart, new float[6]);
-            rebuildWidgets();
-        }));
-
-        addRenderableWidget(new TexturedButton(PosingTextures.BUTTON_SMALL,
-                this.leftPos + RESET_POSE_X, this.topPos + RESET_Y, BUTTON_SMALL_WIDTH, BUTTON_HEIGHT,
-                Component.translatable("jojowor.screen.posing.reset_all"),
-                Component.translatable("jojowor.screen.posing.reset_all_short"), button -> {
-            this.working.replaceAll((name, old) -> new float[6]);
-            this.offsetWorking[0] = StandOffset.DEFAULT.forward();
-            this.offsetWorking[1] = StandOffset.DEFAULT.right();
-            this.offsetWorking[2] = StandOffset.DEFAULT.up();
-            rebuildWidgets();
-        }));
-
-        addRenderableWidget(new TexturedButton(PosingTextures.BUTTON_LARGE,
-                this.leftPos + SAVE_X, this.topPos + SAVE_Y, BUTTON_LARGE_WIDTH, BUTTON_HEIGHT,
-                Component.translatable("jojowor.screen.posing.save"),
-                Component.translatable("jojowor.screen.posing.save"), button -> {
-            sendPose();
-            if (this.selectedSlot >= 0) {
-                net.noiilive.jojowor.client.pose.PoseSlots.save(this.selectedSlot, buildPose());
-            }
-            onClose();
-        }));
-
-        addRenderableWidget(new PoseCheckbox(
-                this.leftPos + CHECKBOX_X, this.topPos + CHECKBOX_Y, CHECKBOX_SIZE, CHECKBOX_SIZE,
-                Component.translatable("jojowor.screen.posing.show_player"),
-                this.showPlayer, value -> this.showPlayer = value));
-
-        addRenderableWidget(new PoseSlider(PosingTextures.TRACK_SMALL,
-                this.leftPos + OFFSET_X_SLIDER_X, this.topPos + OFFSET_Y, TRACK_SMALL_WIDTH, TRACK_HEIGHT,
-                null, -StandOffset.MAX_HORIZONTAL, StandOffset.MAX_HORIZONTAL,
-                this.offsetWorking[1], "%.1f",
-                value -> this.offsetWorking[1] = (float) value));
-
-        addRenderableWidget(new PoseSlider(PosingTextures.TRACK_SMALL,
-                this.leftPos + OFFSET_Y_SLIDER_X, this.topPos + OFFSET_Y, TRACK_SMALL_WIDTH, TRACK_HEIGHT,
-                null, StandOffset.MIN_UP, StandOffset.MAX_UP,
-                this.offsetWorking[2], "%.1f",
-                value -> this.offsetWorking[2] = (float) value));
-
-        addRenderableWidget(new PoseSlider(PosingTextures.TRACK_SMALL,
-                this.leftPos + OFFSET_Z_SLIDER_X, this.topPos + OFFSET_Y, TRACK_SMALL_WIDTH, TRACK_HEIGHT,
-                null, -StandOffset.MAX_HORIZONTAL, StandOffset.MAX_HORIZONTAL,
-                this.offsetWorking[0], "%.1f",
-                value -> this.offsetWorking[0] = (float) value));
-
-        this.savebarX = this.leftPos + IMAGE_WIDTH + 2;
-        this.savebarY = this.topPos + (IMAGE_HEIGHT - SAVEBAR_HEIGHT) / 2;
-
-        addRenderableWidget(new TexturedButton(PosingTextures.UPLOAD,
-                this.savebarX + UPLOAD_X, this.savebarY + TRANSFER_Y, TRANSFER_WIDTH, TRANSFER_HEIGHT,
-                Component.translatable("jojowor.screen.posing.upload"), null, button ->
-                net.noiilive.jojowor.client.pose.PoseShare.openUpload(pose -> {
-                    if (this.minecraft != null && this.minecraft.screen == this) {
-                        applyImportedPose(pose);
-                        sendPose();
-                    }
-                })));
-
-        addRenderableWidget(new TexturedButton(PosingTextures.DOWNLOAD,
-                this.savebarX + DOWNLOAD_X, this.savebarY + TRANSFER_Y, TRANSFER_WIDTH, TRANSFER_HEIGHT,
-                Component.translatable("jojowor.screen.posing.download"), null, button ->
-                net.noiilive.jojowor.client.pose.PoseShare.openDownload(buildPose())));
-
-        for (int i = 0; i < net.noiilive.jojowor.client.pose.PoseSlots.SLOT_COUNT; i++) {
-            final int slot = i;
-            addRenderableWidget(new PoseSlotButton(
-                    this.savebarX + SLOT_X, this.savebarY + SLOT_FIRST_Y + SLOT_PITCH * i,
-                    SLOT_SIZE, SLOT_SIZE, i + 1,
-                    () -> this.selectedSlot == slot,
-                    () -> !net.noiilive.jojowor.client.pose.PoseSlots.isEmpty(slot),
-                    Component.translatable("jojowor.screen.posing.slot", i + 1), button ->
-                    this.selectedSlot = slot));
-
-            addRenderableWidget(new TexturedButton(PosingTextures.BUTTON_SAVE,
-                    this.savebarX + TAB_X, this.savebarY + TAB_SAVE_FIRST_Y + SLOT_PITCH * i,
-                    TAB_WIDTH, TAB_HEIGHT,
-                    Component.translatable("jojowor.screen.posing.slot_load", i + 1), null, button -> {
-                if (!net.noiilive.jojowor.client.pose.PoseSlots.isEmpty(slot)) {
-                    this.selectedSlot = slot;
-                    applyImportedPose(net.noiilive.jojowor.client.pose.PoseSlots.get(slot));
-                    sendPose();
-                }
-            }));
-
-            addRenderableWidget(new TexturedButton(PosingTextures.BUTTON_CLEAR,
-                    this.savebarX + TAB_X, this.savebarY + TAB_CLEAR_FIRST_Y + SLOT_PITCH * i,
-                    TAB_WIDTH, TAB_HEIGHT,
-                    Component.translatable("jojowor.screen.posing.slot_clear", i + 1), null, button ->
-                    net.noiilive.jojowor.client.pose.PoseSlots.clear(slot)));
-        }
 
         addRenderableWidget(new TabButton(SkinTextures.TAB_LEFT,
                 this.leftPos - 32 + 4, this.topPos + 10, 32, 26,
@@ -299,7 +191,128 @@ public class PosingScreen extends Screen {
                 Component.translatable("jojowor.screen.posing.title"), () -> true,
                 button -> {}));
 
-        this.dropdown = addRenderableWidget(new PartDropdown(
+        float[] values = this.working.get(this.selectedPart);
+        String[] sliderKeys = {"rot_x", "rot_y", "rot_z", "off_x", "off_y", "off_z"};
+        for (int i = 0; i < 6; i++) {
+            final int index = i;
+            boolean rotation = i < 3;
+            addRenderableWidget(new PoseSlider(
+                    rotation ? PosingTextures.TRACK_LONG : PosingTextures.TRACK_SMALL,
+                    this.leftPos + SLIDER_COL_X,
+                    this.topPos + (rotation ? ROT_TRACK_YS[i] : POS_TRACK_YS[i - 3]),
+                    rotation ? TRACK_LONG_WIDTH : TRACK_SMALL_WIDTH, TRACK_HEIGHT,
+                    null,
+                    rotation ? -MAX_ROTATION_DEGREES : -MAX_OFFSET,
+                    rotation ? MAX_ROTATION_DEGREES : MAX_OFFSET,
+                    values[index],
+                    rotation ? "%.0f" : "%.1f",
+                    value -> this.working.get(this.selectedPart)[index] = (float) value));
+        }
+
+        addRenderableWidget(new PoseSlider(PosingTextures.TRACK_SMALL,
+                this.leftPos + OFFSET_COL_X, this.topPos + POS_TRACK_YS[0], TRACK_SMALL_WIDTH, TRACK_HEIGHT,
+                null, -StandOffset.MAX_HORIZONTAL, StandOffset.MAX_HORIZONTAL,
+                this.offsetWorking[1], "%.1f",
+                value -> this.offsetWorking[1] = (float) value));
+
+        addRenderableWidget(new PoseSlider(PosingTextures.TRACK_SMALL,
+                this.leftPos + OFFSET_COL_X, this.topPos + POS_TRACK_YS[1], TRACK_SMALL_WIDTH, TRACK_HEIGHT,
+                null, StandOffset.MIN_UP, StandOffset.MAX_UP,
+                this.offsetWorking[2], "%.1f",
+                value -> this.offsetWorking[2] = (float) value));
+
+        addRenderableWidget(new PoseSlider(PosingTextures.TRACK_SMALL,
+                this.leftPos + OFFSET_COL_X, this.topPos + POS_TRACK_YS[2], TRACK_SMALL_WIDTH, TRACK_HEIGHT,
+                null, -StandOffset.MAX_HORIZONTAL, StandOffset.MAX_HORIZONTAL,
+                this.offsetWorking[0], "%.1f",
+                value -> this.offsetWorking[0] = (float) value));
+
+        addRenderableWidget(tooltip(new TexturedButton(PosingTextures.RESET_PART,
+                this.leftPos + RESET_PART_X, this.topPos + BIG_BUTTON_Y, BIG_BUTTON_SIZE, BIG_BUTTON_SIZE,
+                Component.translatable("jojowor.screen.posing.reset"), null, button -> {
+            this.working.put(this.selectedPart, new float[6]);
+            rebuildWidgets();
+        }), Component.translatable("jojowor.screen.posing.reset")));
+
+        addRenderableWidget(tooltip(new TexturedButton(PosingTextures.RESET_POSE,
+                this.leftPos + RESET_POSE_X, this.topPos + BIG_BUTTON_Y, BIG_BUTTON_SIZE, BIG_BUTTON_SIZE,
+                Component.translatable("jojowor.screen.posing.reset_all"), null, button -> {
+            this.working.replaceAll((name, old) -> new float[6]);
+            this.offsetWorking[0] = StandOffset.DEFAULT.forward();
+            this.offsetWorking[1] = StandOffset.DEFAULT.right();
+            this.offsetWorking[2] = StandOffset.DEFAULT.up();
+            rebuildWidgets();
+        }), Component.translatable("jojowor.screen.posing.reset_all")));
+
+        addRenderableWidget(tooltip(new ToggleTextureButton(
+                PosingTextures.SHOWPLAYER_OFF, PosingTextures.SHOWPLAYER_ON,
+                this.leftPos + SHOWPLAYER_X, this.topPos + BIG_BUTTON_Y, BIG_BUTTON_SIZE, BIG_BUTTON_SIZE,
+                Component.translatable("jojowor.screen.posing.show_player"),
+                () -> this.showPlayer, button -> this.showPlayer = !this.showPlayer),
+                Component.translatable("jojowor.screen.posing.show_player")));
+
+        addRenderableWidget(new TexturedButton(PosingTextures.CONFIRM,
+                this.leftPos + CONFIRM_X, this.topPos + CONFIRM_Y, CONFIRM_WIDTH, CONFIRM_HEIGHT,
+                Component.translatable("jojowor.screen.posing.confirm"), null, button -> {
+            sendPose();
+            onClose();
+        }));
+
+        for (int i = 0; i < net.noiilive.jojowor.client.pose.PoseSlots.SLOT_COUNT; i++) {
+            final int slot = i;
+            int slotX = this.leftPos + SLOT_XS[i];
+            addRenderableWidget(tooltip(new StateButton(PosingTextures.SAVESLOT,
+                    slotX, this.topPos + SLOT_Y, SLOT_WIDTH, SLOT_HEIGHT,
+                    Component.translatable("jojowor.screen.posing.slot", i + 1),
+                    () -> this.selectedSlot == slot, button -> this.selectedSlot = slot) {
+                @Override
+                protected boolean clicked(double mouseX, double mouseY) {
+                    return super.clicked(mouseX, mouseY)
+                            && mouseY < getY() + MINI_BUTTON_Y - SLOT_Y;
+                }
+            }, Component.translatable("jojowor.screen.posing.slot", i + 1), MINI_BUTTON_Y - SLOT_Y));
+
+            addRenderableWidget(tooltip(new TexturedButton(PosingTextures.SAVESLOT_SAVE,
+                    slotX + MINI_SAVE_OFFSET, this.topPos + MINI_BUTTON_Y, MINI_BUTTON_SIZE, MINI_BUTTON_SIZE,
+                    Component.translatable("jojowor.screen.posing.slot_save", i + 1), null, button -> {
+                this.selectedSlot = slot;
+                net.noiilive.jojowor.client.pose.PoseSlots.save(slot, buildPose());
+            }), Component.translatable("jojowor.screen.posing.slot_save", i + 1)));
+
+            addRenderableWidget(tooltip(new TexturedButton(PosingTextures.SAVESLOT_LOAD,
+                    slotX + MINI_LOAD_OFFSET, this.topPos + MINI_BUTTON_Y, MINI_BUTTON_SIZE, MINI_BUTTON_SIZE,
+                    Component.translatable("jojowor.screen.posing.slot_load", i + 1), null, button -> {
+                if (!net.noiilive.jojowor.client.pose.PoseSlots.isEmpty(slot)) {
+                    this.selectedSlot = slot;
+                    applyImportedPose(net.noiilive.jojowor.client.pose.PoseSlots.get(slot));
+                    sendPose();
+                }
+            }), Component.translatable("jojowor.screen.posing.slot_load", i + 1)));
+
+            addRenderableWidget(tooltip(new TexturedButton(PosingTextures.SAVESLOT_CLEAR,
+                    slotX + MINI_CLEAR_OFFSET, this.topPos + MINI_BUTTON_Y, MINI_BUTTON_SIZE, MINI_BUTTON_SIZE,
+                    Component.translatable("jojowor.screen.posing.slot_clear", i + 1), null, button ->
+                    net.noiilive.jojowor.client.pose.PoseSlots.clear(slot)),
+                    Component.translatable("jojowor.screen.posing.slot_clear", i + 1)));
+        }
+
+        addRenderableWidget(tooltip(new TexturedButton(PosingTextures.UPLOAD,
+                this.leftPos + TRANSFER_X, this.topPos + UPLOAD_Y, TRANSFER_SIZE, TRANSFER_SIZE,
+                Component.translatable("jojowor.screen.posing.upload"), null, button ->
+                net.noiilive.jojowor.client.pose.PoseShare.openUpload(pose -> {
+                    if (this.minecraft != null && this.minecraft.screen == this) {
+                        applyImportedPose(pose);
+                        sendPose();
+                    }
+                })), Component.translatable("jojowor.screen.posing.upload")));
+
+        addRenderableWidget(tooltip(new TexturedButton(PosingTextures.DOWNLOAD,
+                this.leftPos + TRANSFER_X, this.topPos + DOWNLOAD_Y, TRANSFER_SIZE, TRANSFER_SIZE,
+                Component.translatable("jojowor.screen.posing.download"), null, button ->
+                net.noiilive.jojowor.client.pose.PoseShare.openDownload(buildPose())),
+                Component.translatable("jojowor.screen.posing.download")));
+
+        this.dropdown = addRenderableWidget(new PoseDropdown(
                 this.leftPos + DROPDOWN_X, this.topPos + DROPDOWN_Y, DROPDOWN_WIDTH, DROPDOWN_HEIGHT,
                 this.partNames, this.selectedPart,
                 name -> Component.literal(prettyName(name)),
@@ -350,6 +363,62 @@ public class PosingScreen extends Screen {
         return PosingTextures.prettyName(name);
     }
 
+    private record TooltipZone(int x, int y, int width, int height, Component text) {}
+
+    private <T extends net.minecraft.client.gui.components.AbstractWidget> T tooltip(T widget, Component text) {
+        this.tooltipZones.add(new TooltipZone(
+                widget.getX(), widget.getY(), widget.getWidth(), widget.getHeight(), text));
+        return widget;
+    }
+
+    private <T extends net.minecraft.client.gui.components.AbstractWidget> T tooltip(T widget, Component text,
+                                                                                     int zoneHeight) {
+        this.tooltipZones.add(new TooltipZone(
+                widget.getX(), widget.getY(), widget.getWidth(), zoneHeight, text));
+        return widget;
+    }
+
+    private void renderTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+        if (this.dropdown != null && this.dropdown.isOpen()) {
+            return;
+        }
+        for (TooltipZone zone : this.tooltipZones) {
+            if (mouseX >= zone.x() && mouseX < zone.x() + zone.width()
+                    && mouseY >= zone.y() && mouseY < zone.y() + zone.height()) {
+                guiGraphics.renderTooltip(this.font, zone.text(), mouseX, mouseY);
+                return;
+            }
+        }
+    }
+
+    private static List<int[]> viewportMask() {
+        if (viewportMask == null) {
+            List<int[]> runs = new ArrayList<>();
+            try (var resource = Minecraft.getInstance().getResourceManager().open(
+                    net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(
+                            net.noiilive.jojowor.JoJoWoR.MODID, "textures/gui/standposing_viewport.png"));
+                 NativeImage image = NativeImage.read(resource)) {
+                for (int y = 0; y < image.getHeight(); y++) {
+                    int runStart = -1;
+                    for (int x = 0; x <= image.getWidth(); x++) {
+                        boolean transparent = x < image.getWidth()
+                                && (image.getPixelRGBA(x, y) >>> 24) == 0;
+                        if (transparent && runStart < 0) {
+                            runStart = x;
+                        } else if (!transparent && runStart >= 0) {
+                            runs.add(new int[]{runStart, y, x - runStart});
+                            runStart = -1;
+                        }
+                    }
+                }
+            } catch (Exception exception) {
+                net.noiilive.jojowor.JoJoWoR.LOGGER.warn("Failed to read viewport mask", exception);
+            }
+            viewportMask = runs;
+        }
+        return viewportMask;
+    }
+
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
@@ -357,16 +426,45 @@ public class PosingScreen extends Screen {
                 this.leftPos, this.topPos, IMAGE_WIDTH, IMAGE_HEIGHT);
         PosingTextures.blitFull(guiGraphics, PosingTextures.VIEWPORT,
                 this.viewportLeft, this.viewportTop, VIEWPORT_WIDTH, VIEWPORT_HEIGHT);
-        PosingTextures.blitFull(guiGraphics, PosingTextures.SAVEBAR,
-                this.savebarX, this.savebarY, SAVEBAR_WIDTH, SAVEBAR_HEIGHT);
-        PosingTextures.drawHeader(guiGraphics, this.font, getTitle(),
-                this.leftPos + 87.5F, this.topPos + 20.0F);
     }
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderViewport(guiGraphics, partialTick);
+        renderViewportMask(guiGraphics);
+        renderTexts(guiGraphics);
+        renderTooltips(guiGraphics, mouseX, mouseY);
+    }
+
+    private void renderTexts(GuiGraphics guiGraphics) {
+        PosingTextures.drawHeader(guiGraphics, this.font, getTitle(),
+                this.leftPos + TITLE_CENTER_X, this.topPos + TITLE_BOTTOM_Y);
+        PosingTextures.drawHeader(guiGraphics, this.font,
+                Component.translatable("jojowor.screen.posing.confirm"),
+                this.leftPos + CONFIRM_TEXT_CENTER_X, this.topPos + CONFIRM_TEXT_BOTTOM_Y);
+        for (int i = 0; i < net.noiilive.jojowor.client.pose.PoseSlots.SLOT_COUNT; i++) {
+            boolean occupied = !net.noiilive.jojowor.client.pose.PoseSlots.isEmpty(i);
+            PosingTextures.drawHeader(guiGraphics, this.font, Component.literal(String.valueOf(i + 1)),
+                    this.leftPos + SLOT_TEXT_CENTER_XS[i], this.topPos + SLOT_TEXT_BOTTOM_Y,
+                    occupied ? 0xFFFFFFFF : 0xFFA0A0A0);
+        }
+    }
+
+    private void renderViewportMask(GuiGraphics guiGraphics) {
+        List<int[]> runs = viewportMask();
+        if (runs.isEmpty()) {
+            return;
+        }
+        guiGraphics.pose().pushPose();
+        guiGraphics.pose().translate(0.0F, 0.0F, 600.0F);
+        for (int[] run : runs) {
+            guiGraphics.blit(PosingTextures.MENU,
+                    this.viewportLeft + run[0], this.viewportTop + run[1],
+                    VIEWPORT_X + run[0], VIEWPORT_Y + run[1],
+                    run[2], 1, IMAGE_WIDTH, IMAGE_HEIGHT);
+        }
+        guiGraphics.pose().popPose();
     }
 
     private void renderViewport(GuiGraphics guiGraphics, float partialTick) {
@@ -532,6 +630,9 @@ public class PosingScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (this.dropdown != null && this.dropdown.handleGlobalScroll(mouseX, mouseY, scrollY)) {
+            return true;
+        }
         if (inViewport(mouseX, mouseY)) {
             this.zoom = Mth.clamp(this.zoom + (float) scrollY * 0.15F, 0.4F, 3.0F);
             return true;

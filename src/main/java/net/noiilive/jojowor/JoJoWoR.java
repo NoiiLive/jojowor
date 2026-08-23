@@ -7,11 +7,13 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.noiilive.jojowor.registry.ModAbilities;
 import net.noiilive.jojowor.registry.ModAttachments;
 import net.noiilive.jojowor.registry.ModBlocks;
 import net.noiilive.jojowor.registry.ModCreativeTabs;
 import net.noiilive.jojowor.registry.ModEffects;
 import net.noiilive.jojowor.registry.ModItems;
+import net.noiilive.jojowor.registry.ModSounds;
 import net.noiilive.jojowor.registry.ModStands;
 
 import org.slf4j.Logger;
@@ -29,8 +31,10 @@ public class JoJoWoR {
         ModItems.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
         ModStands.register(modEventBus);
+        ModAbilities.register(modEventBus);
         ModAttachments.register(modEventBus);
         ModEffects.register(modEventBus);
+        ModSounds.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }

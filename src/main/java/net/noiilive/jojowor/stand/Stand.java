@@ -11,6 +11,17 @@ public class Stand {
     @Nullable
     private String descriptionId;
     private final java.util.List<net.noiilive.jojowor.stand.skin.StandSkin> skins = new java.util.ArrayList<>();
+    private java.util.function.Supplier<net.minecraft.sounds.SoundEvent> timeStopSound =
+            net.noiilive.jojowor.registry.ModSounds.TW_TIMESTOP;
+
+    public Stand withTimeStopSound(java.util.function.Supplier<net.minecraft.sounds.SoundEvent> sound) {
+        this.timeStopSound = sound;
+        return this;
+    }
+
+    public net.minecraft.sounds.SoundEvent getTimeStopSound() {
+        return this.timeStopSound.get();
+    }
 
     public Stand addSkin(net.noiilive.jojowor.stand.skin.StandSkin skin) {
         this.skins.add(skin);

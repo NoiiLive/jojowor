@@ -30,11 +30,29 @@ public final class ModKeyMappings {
             GLFW.GLFW_KEY_G,
             CATEGORY);
 
+    public static final KeyMapping[] ABILITIES = {
+            abilityKey(1, GLFW.GLFW_KEY_Z),
+            abilityKey(2, GLFW.GLFW_KEY_X),
+            abilityKey(3, GLFW.GLFW_KEY_C)
+    };
+
     private ModKeyMappings() {}
+
+    private static KeyMapping abilityKey(int slot, int key) {
+        return new KeyMapping(
+                "key." + JoJoWoR.MODID + ".ability_" + slot,
+                KeyConflictContext.IN_GAME,
+                InputConstants.Type.KEYSYM,
+                key,
+                CATEGORY);
+    }
 
     @SubscribeEvent
     public static void register(RegisterKeyMappingsEvent event) {
         event.register(SUMMON_STAND);
         event.register(MAIN_MENU);
+        for (KeyMapping ability : ABILITIES) {
+            event.register(ability);
+        }
     }
 }

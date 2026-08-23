@@ -80,19 +80,22 @@ public final class StandRenderHandler {
         }
     }
 
-    private static void render(Player owner, ClientLevel level, PoseStack poseStack,
+    public static void render(Player owner, ClientLevel level, PoseStack poseStack,
                                MultiBufferSource bufferSource, Vec3 cameraPos, float partialTick,
                                float alphaScale, boolean viewerHasStand) {
         if (owner.isSpectator()) {
             return;
         }
 
-        ItemStack heldItem = StandTracker.thrownItem(owner, partialTick);
+        boolean frozen = net.noiilive.jojowor.client.ClientTimeStop.isFrozen(owner);
+        float renderTick = frozen ? 0.0F : partialTick;
+
+        ItemStack heldItem = StandTracker.thrownItem(owner, renderTick);
         if (!viewerHasStand && heldItem.isEmpty()) {
             return;
         }
 
-        StandTracker.Pose pose = StandTracker.pose(owner, partialTick);
+        StandTracker.Pose pose = StandTracker.pose(owner, renderTick);
         float alpha = pose.alpha() * alphaScale;
         if (alpha < MIN_VISIBLE_ALPHA) {
             return;
@@ -109,10 +112,10 @@ public final class StandRenderHandler {
         }
 
         float standYaw = pose.yaw();
-        float headYaw = Mth.rotLerp(partialTick, owner.yHeadRotO, owner.yHeadRot);
-        float headPitch = Mth.lerp(partialTick, owner.xRotO, owner.getXRot());
+        float headYaw = Mth.rotLerp(renderTick, owner.yHeadRotO, owner.yHeadRot);
+        float headPitch = Mth.lerp(renderTick, owner.xRotO, owner.getXRot());
 
-        Vec3 velocity = StandTracker.velocity(owner, partialTick);
+        Vec3 velocity = StandTracker.velocity(owner, renderTick);
         double standYawRad = Math.toRadians(standYaw);
         double sinStandYaw = Math.sin(standYawRad);
         double cosStandYaw = Math.cos(standYawRad);
@@ -124,8 +127,10 @@ public final class StandRenderHandler {
         float leanRight = (float) Mth.clamp(
                 rightSpeed * LEAN_DEGREES_PER_BLOCK_PER_TICK, -MAX_LEAN_DEGREES, MAX_LEAN_DEGREES);
 
+        double animationTime = StandTracker.animationAge(owner, level.getGameTime() + partialTick);
+
         float action = Math.max(Math.max(pose.defensive(), pose.combat()), pose.barrage());
-        double hover = Mth.lerp(action, hoverOffset(level, partialTick), ACTION_HOVER);
+        double hover = Mth.lerp(action, hoverOffset(animationTime), ACTION_HOVER);
 
         double standX = pose.position().x;
         double standY = pose.position().y + hover;
@@ -139,7 +144,7 @@ public final class StandRenderHandler {
         poseStack.scale(-1.0F, -1.0F, 1.0F);
         poseStack.translate(0.0F, MODEL_Y_OFFSET, 0.0F);
 
-        double ageTicks = level.getGameTime() + partialTick + idlePhaseOffset(owner);
+        double ageTicks = animationTime + idlePhaseOffset(owner);
         baked.model().setupAnim(new StandAnimation(
                 ageTicks,
                 Mth.wrapDegrees(headYaw - standYaw),
@@ -165,7 +170,7 @@ public final class StandRenderHandler {
                 VertexConsumer buffer = bufferSource.getBuffer(baked.model().renderType(layer.texture()));
                 baked.model().renderToBuffer(poseStack, buffer, light, OverlayTexture.NO_OVERLAY, color);
             }
-            renderGhostFists(owner, baked, poseStack, bufferSource, layers, light, alpha, partialTick);
+            renderGhostFists(owner, baked, poseStack, bufferSource, layers, light, alpha, renderTick);
         }
 
         if (!heldItem.isEmpty()) {
@@ -225,8 +230,7 @@ public final class StandRenderHandler {
         return Math.floorMod(owner.getUUID().hashCode(), IDLE_PHASE_SPREAD_TICKS);
     }
 
-    private static double hoverOffset(ClientLevel level, float partialTick) {
-        double time = (level.getGameTime() % (long) BOB_PERIOD_TICKS) + partialTick;
+    private static double hoverOffset(double time) {
         return HOVER_MID + HOVER_AMPLITUDE * Math.sin(time / BOB_PERIOD_TICKS * 2.0D * Math.PI);
     }
 }

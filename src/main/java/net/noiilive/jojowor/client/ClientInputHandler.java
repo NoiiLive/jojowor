@@ -31,6 +31,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.noiilive.jojowor.JoJoWoR;
 import net.noiilive.jojowor.client.gui.PosingScreen;
 import net.noiilive.jojowor.client.render.StandTracker;
+import net.noiilive.jojowor.network.StandAbilityPayload;
 import net.noiilive.jojowor.network.StandAttackPayload;
 import net.noiilive.jojowor.network.StandBarragePayload;
 import net.noiilive.jojowor.network.StandGuardPayload;
@@ -43,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 import net.noiilive.jojowor.registry.ModEffects;
 import net.noiilive.jojowor.stand.GuardMode;
 import net.noiilive.jojowor.stand.StandAttacks;
+import net.noiilive.jojowor.stand.ability.StandAbilities;
 import net.noiilive.jojowor.stand.Stands;
 
 import java.util.Optional;
@@ -64,18 +66,36 @@ public final class ClientInputHandler {
             return;
         }
 
+        boolean frozen = net.noiilive.jojowor.client.ClientTimeStop.isFrozen(player);
         boolean stunned = player.hasEffect(ModEffects.STUN);
 
         while (ModKeyMappings.SUMMON_STAND.consumeClick()) {
-            if (!stunned) {
+            if (!stunned && !frozen) {
                 PacketDistributor.sendToServer(SummonStandPayload.INSTANCE);
             }
         }
 
         while (ModKeyMappings.MAIN_MENU.consumeClick()) {
-            if (minecraft.screen == null && Stands.has(player)) {
+            if (!frozen && minecraft.screen == null && Stands.has(player)) {
                 minecraft.setScreen(new PosingScreen());
             }
+        }
+
+        for (int slot = 0; slot < ModKeyMappings.ABILITIES.length; slot++) {
+            final int abilitySlot = slot;
+            while (ModKeyMappings.ABILITIES[slot].consumeClick()) {
+                net.noiilive.jojowor.stand.ability.StandAbility ability =
+                        StandAbilities.slotAbility(player, abilitySlot);
+                if (!stunned && Stands.isSummoned(player) && ability != null
+                        && (!frozen || ability.usableWhileFrozen())) {
+                    PacketDistributor.sendToServer(new StandAbilityPayload(abilitySlot));
+                }
+            }
+        }
+
+        if (frozen) {
+            sentGuardMode = GuardMode.NONE;
+            return;
         }
 
         if (!Stands.isSummoned(player)) {
@@ -125,6 +145,11 @@ public final class ClientInputHandler {
         if (player == null || !Stands.isSummoned(player)) {
             return;
         }
+        if (net.noiilive.jojowor.client.ClientTimeStop.isFrozen(player)) {
+            event.setSwingHand(false);
+            event.setCanceled(true);
+            return;
+        }
 
         if (event.isAttack()) {
             if (sentGuardMode != GuardMode.NONE) {
@@ -137,7 +162,7 @@ public final class ClientInputHandler {
                 if (found.entityId() != StandAttackPayload.NO_TARGET) {
                     event.setSwingHand(false);
                     event.setCanceled(true);
-                    if (!player.hasEffect(ModEffects.STUN)) {
+                    if (!player.hasEffect(ModEffects.STUN) && StandTracker.attackReady(player)) {
                         if (!player.onGround()) {
                             if (StandTracker.slamReady(player)) {
                                 StandTracker.startSlam(player, found.entityId());

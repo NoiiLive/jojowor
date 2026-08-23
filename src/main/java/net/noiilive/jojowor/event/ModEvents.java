@@ -26,9 +26,37 @@ public final class ModEvents {
     private ModEvents() {}
 
     @SubscribeEvent
+    public static void onEntityTick(net.neoforged.neoforge.event.tick.EntityTickEvent.Pre event) {
+        net.minecraft.world.entity.Entity entity = event.getEntity();
+        if (entity.level().isClientSide()
+                || net.noiilive.jojowor.stand.ability.TimeStops.stopAffecting(entity) == null) {
+            return;
+        }
+        if (net.noiilive.jojowor.stand.ability.TimeStopGrace.tick(entity)) {
+            return;
+        }
+        if (entity instanceof net.minecraft.world.entity.item.ItemEntity item) {
+            item.setNoPickUpDelay();
+        }
+        entity.tickCount--;
+        event.setCanceled(true);
+    }
+
+    @SubscribeEvent
+    public static void onEntityJoin(net.neoforged.neoforge.event.entity.EntityJoinLevelEvent event) {
+        if (event.getLevel().isClientSide()) {
+            return;
+        }
+        if (net.noiilive.jojowor.stand.ability.TimeStops.stopAffecting(event.getEntity()) != null) {
+            net.noiilive.jojowor.stand.ability.TimeStopGrace.grant(event.getEntity());
+        }
+    }
+
+    @SubscribeEvent
     public static void onServerTick(ServerTickEvent.Post event) {
         StandAttacks.tick(event.getServer());
         StandGuards.tick(event.getServer());
+        net.noiilive.jojowor.stand.ability.TimeStops.tick(event.getServer());
     }
 
     @SubscribeEvent
@@ -91,8 +119,18 @@ public final class ModEvents {
     @SubscribeEvent
     public static void onPlayerDeath(LivingDeathEvent event) {
         if (event.getEntity() instanceof ServerPlayer player) {
-            Stands.setSummoned(player, false);
+            if (net.noiilive.jojowor.stand.ability.TimeStops.stopAffecting(player) == null) {
+                Stands.setSummoned(player, false);
+            }
             StandGuards.clear(player);
+            net.noiilive.jojowor.stand.ability.TimeStops.stop(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            Stands.setSummoned(player, false);
         }
     }
 
@@ -101,6 +139,7 @@ public final class ModEvents {
         if (event.getEntity() instanceof ServerPlayer player) {
             Stands.setSummoned(player, false);
             StandGuards.clear(player);
+            net.noiilive.jojowor.stand.ability.TimeStops.stop(player);
         }
     }
 

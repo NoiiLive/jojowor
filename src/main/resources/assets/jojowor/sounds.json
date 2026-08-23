@@ -1,0 +1,20 @@
+{
+  "tw_timestop": {
+    "subtitle": "subtitles.jojowor.timestop",
+    "sounds": [
+      {
+        "name": "jojowor:tw_timestop",
+        "stream": false
+      }
+    ]
+  },
+  "timeresume": {
+    "subtitle": "subtitles.jojowor.timeresume",
+    "sounds": [
+      {
+        "name": "jojowor:timeresume",
+        "stream": false
+      }
+    ]
+  }
+}

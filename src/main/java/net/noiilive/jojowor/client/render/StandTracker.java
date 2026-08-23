@@ -120,7 +120,13 @@ public final class StandTracker {
 
         STATES.keySet().removeIf(uuid -> level.getPlayerByUUID(uuid) == null);
         for (Player player : level.players()) {
-            STATES.computeIfAbsent(player.getUUID(), uuid -> new State(player)).tick(player);
+            State state = STATES.computeIfAbsent(player.getUUID(), uuid -> new State(player));
+            if (net.noiilive.jojowor.client.ClientTimeStop.isFrozen(player)) {
+                state.freeze(level);
+                continue;
+            }
+            state.frozenAge = -1.0D;
+            state.tick(player);
         }
     }
 
@@ -151,6 +157,8 @@ public final class StandTracker {
         State state = STATES.computeIfAbsent(owner.getUUID(), uuid -> new State(owner));
         state.uppercutTime = 0.0F;
         state.uppercutCooldown = StandAttacks.UPPERCUT_COOLDOWN_TICKS;
+        state.comboCount = StandAttacks.COMBO_SIZE;
+        state.ticksSincePunch = 0;
         Entity target = owner.level().getEntity(targetEntityId);
         if (target != null && target.isAlive()) {
             state.aimLunge(owner, target.position(), target.getY() + target.getBbHeight() * 0.75D);
@@ -166,6 +174,8 @@ public final class StandTracker {
         State state = STATES.computeIfAbsent(owner.getUUID(), uuid -> new State(owner));
         state.slamTime = 0.0F;
         state.slamCooldown = StandAttacks.SLAM_COOLDOWN_TICKS;
+        state.comboCount = StandAttacks.COMBO_SIZE;
+        state.ticksSincePunch = 0;
         Entity target = owner.level().getEntity(targetEntityId);
         if (target != null && target.isAlive()) {
             state.aimLunge(owner, target.position(), target.getY() + target.getBbHeight() * 0.75D);
@@ -180,6 +190,20 @@ public final class StandTracker {
     public static boolean specialActive(Player player) {
         State state = STATES.get(player.getUUID());
         return state != null && (state.uppercutTime >= 0.0F || state.slamTime >= 0.0F);
+    }
+
+    public static boolean attackReady(Player player) {
+        State state = STATES.get(player.getUUID());
+        if (state == null) {
+            return true;
+        }
+        if (state.barrageCooldown > 0 || state.uppercutTime >= 0.0F || state.slamTime >= 0.0F) {
+            return false;
+        }
+        int cooldown = state.comboCount >= StandAttacks.COMBO_SIZE
+                ? StandAttacks.COMBO_END_COOLDOWN_TICKS
+                : StandAttacks.MIN_PUNCH_INTERVAL_TICKS;
+        return state.ticksSincePunch >= cooldown;
     }
 
     public static void setBarraging(Player player, boolean barraging) {
@@ -288,6 +312,11 @@ public final class StandTracker {
                     0.0F, 0.0F, 0.0F, -1.0F, -1.0F, -1.0F, 0.0F, 0.0F, -1.0F, -1.0F);
         }
         return state.pose(partialTick);
+    }
+
+    public static double animationAge(Player player, double fallback) {
+        State state = STATES.get(player.getUUID());
+        return state == null || state.frozenAge < 0.0D ? fallback : state.frozenAge;
     }
 
     public static Vec3 velocity(Player player, float partialTick) {
@@ -424,6 +453,7 @@ public final class StandTracker {
         private double lungeYCur;
         private float previousLunge;
         private float lunge;
+        private double frozenAge = -1.0D;
         private int ticksSincePunch = 1000;
         private int comboCount;
         private boolean queued;
@@ -572,6 +602,24 @@ public final class StandTracker {
             }
             this.queued = false;
             return true;
+        }
+
+        void freeze(ClientLevel level) {
+            if (this.frozenAge < 0.0D) {
+                this.frozenAge = level.getGameTime();
+            }
+            this.previousAlpha = this.alpha;
+            this.previousDefensive = this.defensive;
+            this.previousCombat = this.combat;
+            this.previousBodyYaw = this.bodyYaw;
+            this.previousHeadYaw = this.headYaw;
+            this.previousPosition = this.position;
+            this.previousFinal = this.finalPos;
+            this.previousVelocity = this.velocity;
+            this.previousBarrageEnv = this.barrageEnv;
+            this.previousLungeH = this.lungeH;
+            this.previousLungeY = this.lungeYCur;
+            this.previousLunge = this.lunge;
         }
 
         void tick(Player owner) {

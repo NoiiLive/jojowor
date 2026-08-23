@@ -10,6 +10,26 @@ import net.noiilive.jojowor.client.render.StandTracker;
 public final class ClientPayloadHandler {
     private ClientPayloadHandler() {}
 
+    public static void handleTimeStopEffect(TimeStopEffectPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (!payload.active()) {
+                net.noiilive.jojowor.client.ClientTimeStop.stop(payload.ownerEntityId());
+                if (!net.noiilive.jojowor.client.ClientTimeStop.isActive()) {
+                    net.noiilive.jojowor.client.render.TimeStopRenderer.stop();
+                }
+                return;
+            }
+            net.minecraft.world.phys.Vec3 center =
+                    new net.minecraft.world.phys.Vec3(payload.x(), payload.y(), payload.z());
+            net.noiilive.jojowor.client.ClientTimeStop.start(
+                    payload.ownerEntityId(), center, payload.radius(), payload.global());
+            if (!payload.silent()) {
+                net.noiilive.jojowor.client.render.TimeStopRenderer.start(
+                        payload.ownerEntityId(), center, payload.radius(), payload.global());
+            }
+        });
+    }
+
     public static void handleStandThrowEffect(StandThrowEffectPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> {
             ClientLevel level = Minecraft.getInstance().level;

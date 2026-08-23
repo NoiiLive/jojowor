@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "net.noiilive.jojowor.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "LevelMixin",
+    "ServerGamePacketListenerMixin",
+    "ServerLevelMixin"
+  ],
+  "client": [
+    "client.ClientLevelMixin",
+    "client.EntityRenderDispatcherMixin",
+    "client.LivingEntityRendererMixin",
+    "client.MouseHandlerMixin",
+    "client.ParticleEngineMixin",
+    "client.ParticleMixin",
+    "client.TextureAtlasMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
